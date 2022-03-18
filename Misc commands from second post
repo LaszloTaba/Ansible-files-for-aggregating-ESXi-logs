@@ -1,0 +1,49 @@
+---
+ - hosts: esxi
+   become_user: laszlo
+
+   tasks:
+   - name: Copying the /var/log/shell.log file to the /tmp directory on the ESXi server.
+     ansible.builtin.copy:
+       src: /var/log/shell.log
+       dest: /tmp/ESXi-shell.log
+       remote_src: yes
+
+   - name: Running Ansible shell commands having to do with general user stats.
+     shell: | # Execute the following shell commands.
+            cat /tmp/ESXi-shell.log | grep ' \[' > /tmp/temp-file1.log
+            awk '{print substr($3, 2, length($3)-3)}' /tmp/temp-file1.log > /tmp/temp-file2.log
+            cat /tmp/temp-file2.log | uniq -c > /tmp/temp-file3.log
+            printf 'Shell use\n' > /tmp/ESXi-stats.log
+            printf '---------\n' >> /tmp/ESXi-stats.log
+            awk '{print "The " $2 " user ran " $1 " commands in the terminal."}' /tmp/temp-file3.log >> /tmp/ESXi-stats.log
+
+   - name: Running Ansible shell commands having to do with user commands.
+     shell: | # Execute the following shell commands.
+            awk '{$1=$2=$3=""; print $0}' /tmp/temp-file1.log > /tmp/temp-file2.log
+            printf '\nThese users ran the following commands in the terminal' >> /tmp/ESXi-stats.log
+            printf '\n------------------------------------------------------\n' >> /tmp/ESXi-stats.log
+            cat /tmp/temp-file2.log | sort | uniq >> /tmp/ESXi-stats.log
+
+   - name: Fetching the ESXi-shell.log file from the /tmp directory on the ESXi server to the /tmp directory on the Ansible controller node.
+     ansible.builtin.fetch:
+       src: /tmp/ESXi-shell.log
+       dest: /tmp/
+       flat: yes
+
+   - name: Fetching the ESXi-stats.log file from the /tmp directory on the ESXi server to the /tmp directory on the Ansible controller node.
+     ansible.builtin.fetch:
+       src: /tmp/ESXi-stats.log
+       dest: /tmp/
+       flat: yes
+
+   - name: Deleting temporary files on the ESXi server.
+     file:
+       path: '{{ item }}'
+       state: absent
+     with_items:
+       - /tmp/ESXi-shell.log
+       - /tmp/ESXi-stats.log
+       - /tmp/temp-file1.log
+       - /tmp/temp-file2.log
+       - /tmp/temp-file3.log
