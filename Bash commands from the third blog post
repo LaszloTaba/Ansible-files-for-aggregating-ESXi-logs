@@ -1,0 +1,20 @@
+cp /var/log/shell.log /tmp/ESXi-shell.log
+
+printf 'Shell use\n' > /tmp/ESXi-stats.log
+printf '---------\n' >> /tmp/ESXi-stats.log
+
+cat /tmp/ESXi-shell.log | grep ' \[' | \
+        awk '{print substr($3, 2, length($3)-3)}' | \
+        uniq -c | \
+        awk '{print "The " $2 " user ran " $1 " commands in the terminal."}' >> /tmp/ESXi-stats.log
+
+printf '\nThese users ran the following commands in the terminal' >> /tmp/ESXi-stats.log
+printf '\n------------------------------------------------------\n' >> /tmp/ESXi-stats.log
+
+awk '{$1=$2=$3=""; print $0}' /tmp/ESXi-shell.log | sort | uniq >> /tmp/ESXi-stats.log
+
+=========================
+
+# Make sure to add the username and IP address to the commands below. 
+sudo scp [username]@[ESXi IP address]:/tmp/ESXi* /tmp
+sudo ssh [username]@[ESXi IP address] 'rm /tmp/ESXi*'
