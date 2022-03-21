@@ -4,4 +4,4 @@ This GitHub repository has Ansible files from a project I created in 2021, where
 
 I've uploaded two files to this repository. The first, named "playbook from the second blog post", includes a playbook I created that aggregates various logs on an ESXi server. Note that I designed the playbook to run on a remote device on the ESXi server, so that the remote device will collect logs. Also, keep in mind that I wrote it as a proof of concept. Optimizing it for log aggregation would require modify the code, and, really, Ansible is probably not the best option for that kind of functionality. 
 
-The second file, named "Bash commands from the third blog post", I wrote a script in Bash that aggregates logs like my Ansible playbook does. 
+The second file, named "Bash commands from the third blog post", is a script I wrote in Bash that aggregates logs like my Ansible playbook does. 
